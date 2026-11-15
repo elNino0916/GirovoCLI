@@ -67,7 +67,7 @@ const VALUE_OPTIONS: &[(&str, &str)] = &[
   ("permissions", ""),
   ("address", ""),
 ];
-const FLAG_OPTIONS: &[(&str, &str)] = &[("all", ""), ("json", ""), ("no-color", ""), ("help", "h"), ("version", "V")];
+const FLAG_OPTIONS: &[(&str, &str)] = &[("all", ""), ("ids", ""), ("json", ""), ("no-color", ""), ("help", "h"), ("version", "V")];
 
 fn parse(raw: Vec<String>) -> Result<Args, String> {
   let mut words = Vec::new();

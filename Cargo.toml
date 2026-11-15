@@ -1,6 +1,6 @@
 [package]
 name = "girovo-cli"
-version = "1.0.0"
+version = "1.0.1"
 edition = "2024"
 rust-version = "1.88"
 description = "Girovo CLI: your accounts and bookings from Girovo in the terminal, through the Girovo API"

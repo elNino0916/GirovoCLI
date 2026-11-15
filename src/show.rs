@@ -225,6 +225,7 @@ pub struct Table {
   align: Vec<Align>,
   /// The column that gives way when the terminal is too narrow.
   flex: Option<usize>,
+  head: Option<Vec<Cell>>,
   rows: Vec<Vec<Cell>>,
 }
 
@@ -233,8 +234,14 @@ impl Table {
     Table {
       align: align.to_vec(),
       flex,
+      head: None,
       rows: Vec::new(),
     }
+  }
+
+  /// The headings, printed dim above the rows.
+  pub fn head(&mut self, cells: Vec<Cell>) {
+    self.head = Some(cells);
   }
 
   pub fn row(&mut self, cells: Vec<Cell>) {
@@ -247,27 +254,32 @@ impl Table {
 
   pub fn print(&self) {
     let n = self.align.len();
+    // A column with nothing in any row is left out, its heading too.
+    let shown: Vec<usize> = (0..n)
+      .filter(|&i| self.rows.iter().any(|r| r.get(i).is_some_and(|c| !c.plain.is_empty())))
+      .collect();
     let mut widths = vec![0usize; n];
-    for row in &self.rows {
+    for row in self.head.iter().chain(&self.rows) {
       for (i, cell) in row.iter().enumerate().take(n) {
         widths[i] = widths[i].max(cell.plain.width());
       }
     }
     // Two spaces in front, two between columns.
     if let (Some(flex), Some(term)) = (self.flex, os::terminal_width()) {
-      let total: usize = 2 + widths.iter().sum::<usize>() + 2 * (n.saturating_sub(1));
-      if total > term {
+      let total: usize = 2 + shown.iter().map(|&i| widths[i]).sum::<usize>() + 2 * shown.len().saturating_sub(1);
+      if total > term && shown.contains(&flex) {
         widths[flex] = widths[flex].saturating_sub(total - term).max(8);
       }
     }
-    for row in &self.rows {
+    for row in self.head.iter().chain(&self.rows) {
+      let cells: Vec<(usize, &Cell)> = shown.iter().filter_map(|&i| row.get(i).map(|c| (i, c))).collect();
       let mut line = String::from("  ");
-      for (i, cell) in row.iter().enumerate().take(n) {
-        let text = cut(&cell.plain, widths[i]);
-        let pad = " ".repeat(widths[i].saturating_sub(text.width()));
-        let last = i + 1 == row.len().min(n);
+      for (k, (i, cell)) in cells.iter().enumerate() {
+        let text = cut(&cell.plain, widths[*i]);
+        let pad = " ".repeat(widths[*i].saturating_sub(text.width()));
+        let last = k + 1 == cells.len();
         let shown = (cell.style)(&text);
-        match self.align[i] {
+        match self.align[*i] {
           Align::Right => line.push_str(&format!("{pad}{shown}")),
           Align::Left if last => line.push_str(&shown),
           Align::Left => line.push_str(&format!("{shown}{pad}")),

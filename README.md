@@ -8,8 +8,8 @@ that runs on your computer, and Girovo decides what it may do.
 $ girovo-cli accounts
 Konten
   Konto                  IBAN                         Kontostand   Verfügbar
-  Girokonto · Sparkasse  DE89 3704 0044 0532 0130 00  1.234,56 €  2.234,56 €  a_1abc
-  Tagesgeld · DKB        DE02 1203 0000 0000 2020 51  8.500,00 €              a_2def
+  Girokonto · Sparkasse  DE89 3704 0044 0532 0130 00  1.234,56 €  2.234,56 €
+  Tagesgeld · DKB        DE02 1203 0000 0000 2020 51  8.500,00 €
 
   Gesamtsaldo  9.734,56 €
 ```
@@ -66,7 +66,9 @@ and asks again whenever the file changes.
 | `call <method> [json]` | Any Girovo API method, the answer as JSON. `--permissions a,b` asks for those first | per method |
 
 An account can be given by its name, the end of its IBAN or its id (`a_…`).
-Bookings are named by the id in the last column of `transactions`.
+Bookings are named by the id in the last column of `transactions`. Other
+tables leave ids out; `--ids` shows them. A column with nothing in it, such as
+Verfügbar when no bank reports it, is left out.
 
 `--json` prints Girovo's own answer instead of a table, `--no-color` (or
 `NO_COLOR`) leaves colours out. Texts are German when your system is, else

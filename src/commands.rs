@@ -43,6 +43,11 @@ impl Ctx<'_> {
     self.g.call(method, params, reason())
   }
 
+  /// An id for a table: shown with --ids only, since names do for everything but bookings.
+  fn id(&self, id: &str) -> String {
+    if self.args.flag(&["ids"]) { id.to_string() } else { String::new() }
+  }
+
   /// With --json, Girovo's answer as it came; true when it was printed.
   fn json(&self, v: &Value) -> bool {
     if self.args.json {
@@ -355,7 +360,7 @@ fn accounts(ctx: &mut Ctx) -> Done {
   }
   println!("{}", heading(tr("Konten", "Accounts")));
   let mut t = Table::new(&[Align::Left, Align::Left, Align::Right, Align::Right, Align::Left], Some(0));
-  t.row(vec![
+  t.head(vec![
     Cell::styled(tr("Konto", "Account"), dim),
     Cell::styled("IBAN", dim),
     Cell::styled(tr("Kontostand", "Balance"), dim),
@@ -369,7 +374,7 @@ fn accounts(ctx: &mut Ctx) -> Done {
       Cell::new(a.get("iban").and_then(Value::as_str).map(show::iban).unwrap_or_default()),
       Cell::styled(money(&a["balance"]), bold),
       Cell::new(money(&a["available"])),
-      Cell::styled(str_of(a, "id"), dim),
+      Cell::styled(ctx.id(str_of(a, "id")), dim),
     ]);
   }
   t.print();
@@ -576,7 +581,7 @@ fn month(ctx: &mut Ctx) -> Done {
         Cell::new(str_of(&c["category"], "name")),
         Cell::new(money(&c["amount"])),
         Cell::new(show::bar(cents, top, 16)),
-        Cell::styled(str_of(&c["category"], "id"), dim),
+        Cell::styled(ctx.id(str_of(&c["category"], "id")), dim),
       ]);
     }
     t.print();
@@ -609,7 +614,7 @@ fn budgets(ctx: &mut Ctx) -> Done {
     return Ok(());
   }
   let mut t = Table::new(&[Align::Left, Align::Right, Align::Right, Align::Right, Align::Left], Some(0));
-  t.row(vec![
+  t.head(vec![
     Cell::styled(tr("Kategorie", "Category"), dim),
     Cell::styled(tr("Ausgegeben", "Spent"), dim),
     Cell::styled(tr("Budget", "Budget"), dim),
@@ -658,7 +663,7 @@ fn contracts(ctx: &mut Ctx) -> Done {
     return Ok(());
   }
   let mut t = Table::new(&[Align::Left, Align::Right, Align::Left, Align::Right, Align::Left, Align::Left], Some(0));
-  t.row(vec![
+  t.head(vec![
     Cell::styled(tr("Name", "Name"), dim),
     Cell::styled(tr("Betrag", "Amount"), dim),
     Cell::new(""),
@@ -684,7 +689,7 @@ fn contracts(ctx: &mut Ctx) -> Done {
       Cell::styled(cadence(str_of(c, "cadence")), dim),
       Cell::new(money(&c["perMonth"])),
       Cell::new(c.get("nextDay").and_then(Value::as_str).map(show::day).unwrap_or_default()),
-      Cell::styled(str_of(c, "id"), dim),
+      Cell::styled(ctx.id(str_of(c, "id")), dim),
     ]);
   }
   t.print();
@@ -1257,6 +1262,17 @@ pub fn help() {
   t.row(vec![
     Cell::new("--json"),
     Cell::styled(if de { "Girovos Antwort als JSON" } else { "Girovo's answer as JSON" }, dim),
+  ]);
+  t.row(vec![
+    Cell::new("--ids"),
+    Cell::styled(
+      if de {
+        "Auch die ids zeigen (a_…, c_…)"
+      } else {
+        "Also show the ids (a_…, c_…)"
+      },
+      dim,
+    ),
   ]);
   t.row(vec![Cell::new("--no-color"), Cell::styled(if de { "Ohne Farben" } else { "No colours" }, dim)]);
   t.row(vec![Cell::new("-h, --help  -V, --version"), Cell::new("")]);
