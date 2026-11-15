@@ -1,0 +1,48 @@
+[package]
+name = "girovo-cli"
+version = "1.0.0"
+edition = "2024"
+rust-version = "1.88"
+description = "Girovo CLI: your accounts and bookings from Girovo in the terminal, through the Girovo API"
+authors = ["MT-Media"]
+license-file = "LICENSE"
+repository = "https://github.com/elNino0916/GirovoCLI"
+homepage = "https://developer.girovo.de"
+publish = false
+
+# Like Girovo's own helpers (girovo-mcp, girovo-update): no async runtime and
+# no argument library, only serde_json. On Windows the windows crate finds the
+# user's SID (Girovo's pipe is named after it) and checks who owns the pipe.
+
+[[bin]]
+name = "girovo-cli"
+path = "src/main.rs"
+
+[dependencies]
+serde_json = "1.0"
+unicode-width = "0.2"
+
+[target.'cfg(windows)'.dependencies]
+windows = { version = "0.62", features = [
+  "Win32_Foundation",
+  "Win32_Globalization",
+  "Win32_Security",
+  "Win32_Security_Authorization",
+  "Win32_System_Console",
+  "Win32_System_Pipes",
+  "Win32_System_Threading",
+] }
+
+[target.'cfg(unix)'.dependencies]
+libc = "0.2"
+
+# The version info and icon Windows and Girovo's dialog show for the program.
+[target.'cfg(windows)'.build-dependencies]
+winresource = "0.1"
+
+[profile.release]
+opt-level = "z"
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true
